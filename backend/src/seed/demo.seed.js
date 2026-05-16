@@ -17,6 +17,7 @@ import { Cycle } from "../models/cycle.model.js";
 import { Department } from "../models/department.model.js";
 import { Goal } from "../models/goal.model.js";
 import { GoalSheet } from "../models/goalSheet.model.js";
+import { Notification } from "../models/notification.model.js";
 import { User } from "../models/user.model.js";
 
 const DEMO_PASSWORD = "Demo@123";
@@ -127,6 +128,8 @@ const seed = async () => {
 
   department.headId = manager._id;
   await department.save();
+
+  await Notification.deleteMany({ userId: { $in: [employee._id, manager._id, admin._id] } });
 
   const cycle = await Cycle.findOneAndUpdate(
     { year: "2026-27" },
@@ -273,6 +276,54 @@ const seed = async () => {
       managerId: manager._id,
       outcome: "At Risk",
       comment: "Onboarding turnaround is trending behind plan. Reduce scope to the two highest-volume onboarding paths and flag dependency blockers early.",
+    },
+  ]);
+
+  await Notification.insertMany([
+    {
+      userId: employee._id,
+      title: "Goal sheet approved",
+      message: "Priya Raman approved and locked your goal sheet for Q1 tracking.",
+      type: "approval",
+      read: false,
+      createdAt: new Date("2026-05-16T08:30:00.000Z"),
+      updatedAt: new Date("2026-05-16T08:30:00.000Z"),
+    },
+    {
+      userId: employee._id,
+      title: "Manager feedback posted",
+      message: "Priya added Q1 check-in feedback on your pipeline and onboarding goals.",
+      type: "checkin",
+      read: false,
+      createdAt: new Date("2026-05-16T09:10:00.000Z"),
+      updatedAt: new Date("2026-05-16T09:10:00.000Z"),
+    },
+    {
+      userId: employee._id,
+      title: "Q1 check-in window is open",
+      message: "Capture actual achievement and remarks before the Q1 demo window closes.",
+      type: "checkin",
+      read: false,
+      createdAt: new Date("2026-05-16T09:30:00.000Z"),
+      updatedAt: new Date("2026-05-16T09:30:00.000Z"),
+    },
+    {
+      userId: employee._id,
+      title: "Returned sheet comment available",
+      message: "Use manager return comments to correct goals before resubmitting.",
+      type: "goal",
+      read: true,
+      createdAt: new Date("2026-05-15T12:30:00.000Z"),
+      updatedAt: new Date("2026-05-15T12:30:00.000Z"),
+    },
+    {
+      userId: manager._id,
+      title: "Feedback requested",
+      message: "Sana Khatri requested feedback on her current quarter progress.",
+      type: "checkin",
+      read: false,
+      createdAt: new Date("2026-05-16T10:00:00.000Z"),
+      updatedAt: new Date("2026-05-16T10:00:00.000Z"),
     },
   ]);
 

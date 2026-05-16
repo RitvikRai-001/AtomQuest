@@ -6,6 +6,7 @@ import { Goal } from "../models/goal.model.js";
 import { AuditLog } from "../models/auditLog.model.js";
 import { Achievement } from "../models/achievement.model.js";
 import { CheckinComment } from "../models/checkinComment.model.js";
+import { Notification } from "../models/notification.model.js";
 
 const createAuditLog = async ({ entityType, entityId, action, oldValue, newValue, changedBy, changedByRole }) => {
   await AuditLog.create({
@@ -393,6 +394,15 @@ const submitGoalSheet = asyncHandler(async (req, res) => {
     changedByRole: "employee",
   });
 
+  if (req.user.managerId) {
+    await Notification.create({
+      userId: req.user.managerId,
+      title: "Goal sheet submitted",
+      message: `${req.user.fullname} submitted a goal sheet for approval.`,
+      type: "approval",
+    });
+  }
+
   return res.status(200).json({
     success: true,
     message: "Goal sheet submitted to manager",
@@ -510,6 +520,13 @@ const approveGoalSheet = asyncHandler(async (req, res) => {
     changedByRole: "manager",
   });
 
+  await Notification.create({
+    userId: goalSheet.employeeId,
+    title: "Goal sheet approved",
+    message: comment || "Your manager approved and locked your goal sheet for quarterly tracking.",
+    type: "approval",
+  });
+
   const data = await getGoalSheetWithGoals(goalSheetId);
 
   return res.status(200).json({
@@ -568,6 +585,13 @@ const returnGoalSheet = asyncHandler(async (req, res) => {
     newValue: goalSheet,
     changedBy: managerId,
     changedByRole: "manager",
+  });
+
+  await Notification.create({
+    userId: goalSheet.employeeId,
+    title: "Goal sheet returned",
+    message: comment,
+    type: "approval",
   });
 
   return res.status(200).json({

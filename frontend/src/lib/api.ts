@@ -127,6 +127,18 @@ export const feedbackApi = {
     }),
 };
 
+export const notificationApi = {
+  getMyNotifications: () => apiRequest("/notifications/me"),
+  markRead: (notificationId: string) =>
+    apiRequest(`/notifications/${notificationId}/read`, {
+      method: "PATCH",
+    }),
+  markAllRead: () =>
+    apiRequest("/notifications/read-all", {
+      method: "PATCH",
+    }),
+};
+
 export const adminApi = {
   getCycles: () => apiRequest("/admin/cycles"),
   createCycle: (body: unknown) =>

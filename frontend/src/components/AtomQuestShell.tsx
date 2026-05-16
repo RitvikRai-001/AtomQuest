@@ -1,10 +1,13 @@
 import { Link, useRouterState } from "@tanstack/react-router";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ReactNode } from "react";
+import { useState } from "react";
 import {
   LayoutDashboard, Target, ClipboardList, Users, BarChart3, Shield,
   Settings, Bell, Search, ChevronDown, Plus, FileText, Calendar,
-  GitBranch, Activity, Building2,
+  GitBranch, Activity, Building2, CheckCircle2,
 } from "lucide-react";
+import { getStoredToken, notificationApi } from "@/lib/api";
 
 type Role = "Employee" | "Manager" | "Admin";
 
@@ -77,6 +80,30 @@ export function AppShell({
 }) {
   const pathname = useRouterState({ select: s => s.location.pathname });
   const groups = NAV[role];
+  const hasToken = Boolean(getStoredToken());
+  const queryClient = useQueryClient();
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+
+  const notificationsQuery = useQuery({
+    queryKey: ["notifications", role],
+    queryFn: notificationApi.getMyNotifications,
+    enabled: hasToken,
+    retry: false,
+  });
+
+  const notificationPayload = (notificationsQuery.data as any)?.data;
+  const notifications = notificationPayload?.notifications || [];
+  const unreadCount = notificationPayload?.unreadCount || 0;
+
+  const markReadMutation = useMutation({
+    mutationFn: notificationApi.markRead,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["notifications", role] }),
+  });
+
+  const markAllReadMutation = useMutation({
+    mutationFn: notificationApi.markAllRead,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["notifications", role] }),
+  });
 
   return (
     <div className="min-h-screen bg-app text-pri flex">
@@ -169,10 +196,80 @@ export function AppShell({
               <ChevronDown className="h-3 w-3" />
             </button>
 
-            <button className="h-8 w-8 rounded-md hairline bg-surface hover:bg-elevated grid place-items-center relative">
-              <Bell className="h-3.5 w-3.5 text-sec" />
-              <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-amber" />
-            </button>
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setNotificationsOpen((open) => !open)}
+                className="h-8 w-8 rounded-md hairline bg-surface hover:bg-elevated grid place-items-center relative"
+              >
+                <Bell className="h-3.5 w-3.5 text-sec" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 grid h-4 min-w-4 place-items-center rounded-full bg-amber px-1 text-[9px] font-semibold text-[#0D0F12]">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
+              </button>
+
+              {notificationsOpen && (
+                <div className="absolute right-0 top-10 z-50 w-[360px] overflow-hidden rounded-md border border-subtle bg-app-2 shadow-2xl">
+                  <div className="flex items-center justify-between border-b border-subtle px-3 py-2.5">
+                    <div>
+                      <div className="text-[13px] font-semibold text-pri">Notifications</div>
+                      <div className="text-[11px] text-mut">{unreadCount} unread</div>
+                    </div>
+                    <button
+                      type="button"
+                      disabled={!unreadCount || markAllReadMutation.isPending}
+                      onClick={() => markAllReadMutation.mutate()}
+                      className="h-7 rounded-md border border-subtle bg-surface px-2.5 text-[11.5px] text-sec hover:bg-elevated hover:text-pri disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      Mark all read
+                    </button>
+                  </div>
+
+                  <div className="max-h-[390px] overflow-y-auto">
+                    {!hasToken ? (
+                      <div className="p-4 text-[12px] leading-5 text-sec">Sign in to view notifications.</div>
+                    ) : notificationsQuery.isLoading ? (
+                      <div className="p-4 text-[12px] leading-5 text-sec">Loading notifications...</div>
+                    ) : notifications.length > 0 ? (
+                      notifications.map((notification: any) => (
+                        <button
+                          key={notification._id}
+                          type="button"
+                          onClick={() => {
+                            if (!notification.read) markReadMutation.mutate(notification._id);
+                          }}
+                          className={`grid w-full grid-cols-[32px_1fr] gap-3 border-b border-subtle px-3 py-3 text-left transition last:border-b-0 ${
+                            notification.read ? "bg-app-2 hover:bg-surface" : "bg-teal/10 hover:bg-teal/15"
+                          }`}
+                        >
+                          <div className="grid h-8 w-8 place-items-center rounded-md bg-surface">
+                            {notification.read ? (
+                              <CheckCircle2 className="h-4 w-4 text-success" />
+                            ) : (
+                              <Bell className="h-4 w-4 text-amber" />
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="truncate text-[12.5px] font-semibold text-pri">{notification.title}</span>
+                              <span className="rounded border border-subtle px-1.5 py-0.5 text-[9.5px] uppercase tracking-wide text-mut">
+                                {notification.type}
+                              </span>
+                            </div>
+                            <p className="mt-1 text-[11.5px] leading-5 text-sec">{notification.message}</p>
+                            <div className="mt-1 text-[10.5px] text-mut">{formatNotificationTime(notification.createdAt)}</div>
+                          </div>
+                        </button>
+                      ))
+                    ) : (
+                      <div className="p-4 text-[12px] leading-5 text-sec">No notifications yet.</div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
 
             {primaryAction && (
               <button
@@ -253,4 +350,14 @@ export function SectionHeader({ title, hint, action }: { title: string; hint?: s
       {action}
     </div>
   );
+}
+
+function formatNotificationTime(value?: string) {
+  if (!value) return "";
+  return new Intl.DateTimeFormat("en-IN", {
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(value));
 }
