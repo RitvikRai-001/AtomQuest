@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api/v1";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api/v1";
 
 type ApiOptions = RequestInit & {
   token?: string;
@@ -16,34 +16,59 @@ export const setStoredToken = (token: string) => {
   localStorage.setItem(authTokenKey, token);
 };
 
+export const clearStoredToken = () => {
+  if (typeof window === "undefined") return;
+  localStorage.removeItem(authTokenKey);
+};
+
 export async function apiRequest<T>(path: string, options: ApiOptions = {}): Promise<T> {
   const token = options.token || getStoredToken();
+  const url = `${API_BASE_URL}${path}`;
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...options.headers,
-    },
-  });
+  let response: Response;
+
+  try {
+    response = await fetch(url, {
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...options.headers,
+      },
+    });
+  } catch (error) {
+    throw new Error(
+      `Cannot reach the backend at ${API_BASE_URL}. Check that the API server is running and CORS allows this frontend origin.`
+    );
+  }
 
   const data = await response.json().catch(() => null);
 
   if (!response.ok) {
-    throw new Error(data?.message || "API request failed");
+    throw new Error(data?.message || `API request failed (${response.status})`);
   }
 
   return data;
 }
 
 export const goalSheetApi = {
+  getMyGoalSheet: () => apiRequest("/goal-sheets/me"),
   getManagerApprovalQueue: () => apiRequest("/goal-sheets/manager/approval-queue"),
   getGoalSheet: (goalSheetId: string) => apiRequest(`/goal-sheets/${goalSheetId}`),
   createGoalSheet: (cycleId: string) =>
     apiRequest("/goal-sheets", {
       method: "POST",
       body: JSON.stringify({ cycleId }),
+    }),
+  addGoal: (goalSheetId: string, body: unknown) =>
+    apiRequest(`/goal-sheets/${goalSheetId}/goals`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  updateGoal: (goalSheetId: string, goalId: string, body: unknown) =>
+    apiRequest(`/goal-sheets/${goalSheetId}/goals/${goalId}`, {
+      method: "PATCH",
+      body: JSON.stringify(body),
     }),
   submitGoalSheet: (goalSheetId: string) =>
     apiRequest(`/goal-sheets/${goalSheetId}/submit`, { method: "POST" }),
@@ -57,6 +82,16 @@ export const goalSheetApi = {
       method: "POST",
       body: JSON.stringify({ comment }),
     }),
+};
+
+export const authApi = {
+  login: (body: { email: string; password: string; role: "employee" | "manager" | "admin" }) =>
+    apiRequest<{ success: boolean; data: { accessToken: string; user: any } }>("/auth/login", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  me: () => apiRequest("/auth/me"),
+  logout: () => apiRequest("/auth/logout", { method: "POST" }),
 };
 
 export const achievementApi = {

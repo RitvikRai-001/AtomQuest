@@ -33,8 +33,8 @@ function Nav() {
           <a className="hover:text-pri">Docs</a>
         </nav>
         <div className="ml-auto flex items-center gap-2.5">
-          <Link to="/employee" className="text-[13px] text-sec hover:text-pri">Sign in</Link>
-          <Link to="/employee" className="h-8 px-3 rounded-md bg-teal text-[#0D0F12] text-[12.5px] font-medium flex items-center gap-1.5 hover:opacity-90">
+          <Link to="/login" className="text-[13px] text-sec hover:text-pri">Sign in</Link>
+          <Link to="/login" className="h-8 px-3 rounded-md bg-teal text-[#0D0F12] text-[12.5px] font-medium flex items-center gap-1.5 hover:opacity-90">
             Open workspace <ArrowUpRight className="h-3.5 w-3.5" />
           </Link>
         </div>
@@ -58,7 +58,7 @@ function Hero() {
               ATOMQUEST unifies goal-setting, approvals, quarterly tracking and performance visibility into a single auditable system — built for finance-grade governance and modern team velocity.
             </p>
             <div className="mt-7 flex items-center gap-3">
-              <Link to="/employee" className="h-10 px-4 rounded-md bg-teal text-[#0D0F12] text-[13px] font-medium flex items-center gap-2 hover:opacity-90">
+              <Link to="/login" className="h-10 px-4 rounded-md bg-teal text-[#0D0F12] text-[13px] font-medium flex items-center gap-2 hover:opacity-90">
                 Launch dashboard <ChevronRight className="h-4 w-4" />
               </Link>
               <a className="h-10 px-4 rounded-md hairline bg-surface text-pri text-[13px] font-medium flex items-center gap-2 hover:bg-elevated">
@@ -452,7 +452,7 @@ function CTA() {
           <span className="text-sec">Start running them in production.</span>
         </h2>
         <div className="mt-8 flex items-center justify-center gap-3">
-          <Link to="/employee" className="h-11 px-5 rounded-md bg-teal text-[#0D0F12] text-[13.5px] font-medium flex items-center gap-2 hover:opacity-90">
+          <Link to="/login" className="h-11 px-5 rounded-md bg-teal text-[#0D0F12] text-[13.5px] font-medium flex items-center gap-2 hover:opacity-90">
             Open the workspace <ArrowUpRight className="h-4 w-4" />
           </Link>
           <a className="h-11 px-5 rounded-md hairline bg-surface text-pri text-[13.5px] font-medium flex items-center gap-2 hover:bg-elevated">

@@ -12,7 +12,7 @@ const NAV: Record<Role, { group: string; items: { label: string; to: string; ico
   Employee: [
     { group: "Workspace", items: [
       { label: "Dashboard", to: "/employee", icon: LayoutDashboard },
-      { label: "My Goals", to: "/employee", icon: Target },
+      { label: "My Goals", to: "/employee/goals", icon: Target },
       { label: "Check-ins", to: "/employee", icon: Calendar },
       { label: "Feedback", to: "/employee", icon: FileText },
     ]},
@@ -72,7 +72,7 @@ export function AppShell({
   role: Role;
   title: string;
   breadcrumb?: string;
-  primaryAction?: { label: string; icon?: any };
+  primaryAction?: { label: string; icon?: any; onClick?: () => void };
   children: ReactNode;
 }) {
   const pathname = useRouterState({ select: s => s.location.pathname });
@@ -106,7 +106,7 @@ export function AppShell({
               <div className="space-y-0.5">
                 {g.items.map((it, i) => {
                   const Icon = it.icon;
-                  const active = gi === 0 && i === 0;
+                  const active = pathname === it.to;
                   return (
                     <Link
                       key={i}
@@ -175,7 +175,11 @@ export function AppShell({
             </button>
 
             {primaryAction && (
-              <button className="h-8 px-3 rounded-md bg-teal text-[#0D0F12] text-[12.5px] font-medium flex items-center gap-1.5 hover:opacity-90">
+              <button
+                type="button"
+                onClick={primaryAction.onClick}
+                className="h-8 px-3 rounded-md bg-teal text-[#0D0F12] text-[12.5px] font-medium flex items-center gap-1.5 hover:opacity-90"
+              >
                 {primaryAction.icon ? <primaryAction.icon className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
                 {primaryAction.label}
               </button>

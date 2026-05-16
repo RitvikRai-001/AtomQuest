@@ -4,6 +4,8 @@ import { User } from "../models/user.model.js";
 import { GoalSheet } from "../models/goalSheet.model.js";
 import { Goal } from "../models/goal.model.js";
 import { AuditLog } from "../models/auditLog.model.js";
+import { Achievement } from "../models/achievement.model.js";
+import { CheckinComment } from "../models/checkinComment.model.js";
 
 const createAuditLog = async ({ entityType, entityId, action, oldValue, newValue, changedBy, changedByRole }) => {
   await AuditLog.create({
@@ -122,6 +124,52 @@ const getGoalSheet = asyncHandler(async (req, res) => {
   return res.status(200).json({
     success: true,
     data,
+  });
+});
+
+const getMyGoalSheet = asyncHandler(async (req, res) => {
+  const goalSheet = await GoalSheet.findOne({ employeeId: req.user._id })
+    .populate("employeeId", "fullname email role departmentId managerId")
+    .populate("cycleId", "name year status")
+    .populate("approvedBy", "fullname email")
+    .populate("returnedBy", "fullname email")
+    .populate("unlockedBy", "fullname email")
+    .sort({ createdAt: -1 });
+
+  if (!goalSheet) {
+    return res.status(200).json({
+      success: true,
+      message: "No goal sheet found for this employee",
+      data: {
+        goalSheet: null,
+        goals: [],
+        achievements: [],
+        checkins: [],
+      },
+    });
+  }
+
+  const goals = await Goal.find({ goalSheetId: goalSheet._id }).sort({ createdAt: 1 });
+  const goalIds = goals.map((goal) => goal._id);
+
+  const achievements = await Achievement.find({ goalId: { $in: goalIds } })
+    .populate("goalId", "title target scoringType weightage")
+    .populate("updatedBy", "fullname email role")
+    .sort({ quarter: 1 });
+
+  const checkins = await CheckinComment.find({ goalId: { $in: goalIds } })
+    .populate("goalId", "title target weightage")
+    .populate("managerId", "fullname email role")
+    .sort({ createdAt: -1 });
+
+  return res.status(200).json({
+    success: true,
+    data: {
+      goalSheet,
+      goals,
+      achievements,
+      checkins,
+    },
   });
 });
 
@@ -531,6 +579,7 @@ const returnGoalSheet = asyncHandler(async (req, res) => {
 export {
   createGoalSheet,
   getGoalSheet,
+  getMyGoalSheet,
   addGoal,
   updateGoal,
   deleteGoal,

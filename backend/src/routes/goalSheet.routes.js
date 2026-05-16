@@ -5,6 +5,7 @@ import {
   createGoalSheet,
   deleteGoal,
   getGoalSheet,
+  getMyGoalSheet,
   getManagerApprovalQueue,
   returnGoalSheet,
   submitGoalSheet,
@@ -17,6 +18,8 @@ const router = Router();
 router.use(verifyJWT);
 
 router.route("/").post(authorizeRoles("employee"), createGoalSheet);
+
+router.route("/me").get(authorizeRoles("employee"), getMyGoalSheet);
 
 router.route("/manager/approval-queue").get(authorizeRoles("manager"), getManagerApprovalQueue);
 
