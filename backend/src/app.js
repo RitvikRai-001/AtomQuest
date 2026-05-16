@@ -2,6 +2,7 @@ import path from "path";
 import express from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
+import adminCycleRouter from "./routes/adminCycle.routes.js";
 import achievementRouter from "./routes/achievement.routes.js";
 import checkinRouter from "./routes/checkin.routes.js";
 import goalSheetRouter from "./routes/goalSheet.routes.js";
@@ -35,6 +36,7 @@ app.get("/", (req, res) => {
 app.use("/api/v1/goal-sheets", goalSheetRouter);
 app.use("/api/v1/achievements", achievementRouter);
 app.use("/api/v1/checkins", checkinRouter);
+app.use("/api/v1/admin", adminCycleRouter);
 
 app.use((req, res) => {
   res.status(404).json({
