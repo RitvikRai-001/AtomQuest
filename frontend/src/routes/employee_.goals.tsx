@@ -68,6 +68,13 @@ function EmployeeGoals() {
   const currentSheetStatus = goalSheet ? sheetStatus(goalSheet.status) : "Draft";
   const canEdit = hasToken && goalSheet && ["draft", "returned"].includes(goalSheet.status);
   const canSubmit = goalSheet && ["draft", "returned"].includes(goalSheet.status) && stats.totalWeightage === 100;
+  const weightageDelta = stats.totalWeightage - 100;
+  const weightageMessage =
+    stats.totalWeightage === 100
+      ? "Total weightage is balanced at 100%."
+      : stats.totalWeightage > 100
+        ? `Reduce ${weightageDelta}% before submitting.`
+        : `Add ${Math.abs(weightageDelta)}% before submitting.`;
 
   const submitMutation = useMutation({
     mutationFn: () => goalSheetApi.submitGoalSheet(goalSheet._id),
@@ -208,6 +215,13 @@ function EmployeeGoals() {
             </div>
           </div>
 
+          {stats.totalWeightage !== 100 && (
+            <div className="border-b border-danger/30 bg-danger/10 px-4 py-3 text-[12.5px] text-sec">
+              <span className="font-medium text-pri">Total weightage: {stats.totalWeightage}%.</span>{" "}
+              {weightageMessage} Editing is allowed while the sheet is {currentSheetStatus.toLowerCase()}, but submit is locked until the total equals 100%.
+            </div>
+          )}
+
           <div className="border-b border-subtle px-4 py-3">
             <div className="flex flex-wrap gap-2">
               {healthFilters.map((filter) => (
@@ -293,12 +307,14 @@ function EmployeeGoals() {
                 onSubmit={() => achievementMutation.mutate()}
               />
             ) : actionMode === "add" || actionMode === "edit" ? (
-              <GoalForm
-                form={goalForm}
-                setForm={setGoalForm}
-                pending={addGoalMutation.isPending || updateGoalMutation.isPending}
-                submitLabel={actionMode === "edit" ? "Save goal" : "Add goal"}
-                onSubmit={() => (actionMode === "edit" ? updateGoalMutation.mutate() : addGoalMutation.mutate())}
+                <GoalForm
+                  form={goalForm}
+                  setForm={setGoalForm}
+                  currentTotal={stats.totalWeightage}
+                  previousWeightage={actionMode === "edit" ? selectedGoal?.weightage || 0 : 0}
+                  pending={addGoalMutation.isPending || updateGoalMutation.isPending}
+                  submitLabel={actionMode === "edit" ? "Save goal" : "Add goal"}
+                  onSubmit={() => (actionMode === "edit" ? updateGoalMutation.mutate() : addGoalMutation.mutate())}
               />
             ) : (
               selectedGoal && <GoalDetail goal={selectedGoal} canEdit={canEdit} onEdit={openEditGoal} onAchievement={openAchievement} />
@@ -311,6 +327,11 @@ function EmployeeGoals() {
               <RuleRow ok={stats.totalGoals <= 8} label="Maximum 8 goals" value={`${stats.totalGoals}/8`} />
               <RuleRow ok={rows.every((row) => row.weightage >= 10)} label="Minimum 10% each" value="Required" />
               <RuleRow ok={stats.totalWeightage === 100} label="Total weightage" value={`${stats.totalWeightage}%`} />
+              {stats.totalWeightage !== 100 && (
+                <div className="rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-[12px] leading-5 text-sec">
+                  {weightageMessage}
+                </div>
+              )}
               <RuleRow ok={currentSheetStatus !== "Approved"} label="Editable state" value={canEdit ? "Open" : "Locked"} />
             </div>
           </section>
@@ -418,17 +439,30 @@ function RuleRow({ ok, label, value }: { ok: boolean; label: string; value: stri
 function GoalForm({
   form,
   setForm,
+  currentTotal,
+  previousWeightage,
   pending,
   submitLabel,
   onSubmit,
 }: {
   form: typeof emptyGoalForm;
   setForm: (form: typeof emptyGoalForm) => void;
+  currentTotal: number;
+  previousWeightage: number;
   pending: boolean;
   submitLabel: string;
   onSubmit: () => void;
 }) {
   const update = (key: keyof typeof emptyGoalForm, value: string) => setForm({ ...form, [key]: value });
+  const draftWeightage = Number(form.weightage || 0);
+  const projectedTotal = currentTotal - previousWeightage + draftWeightage;
+  const projectedDelta = projectedTotal - 100;
+  const projectedMessage =
+    projectedTotal === 100
+      ? "This change balances the sheet at 100%."
+      : projectedTotal > 100
+        ? `After saving, reduce ${projectedDelta}% before submitting.`
+        : `After saving, add ${Math.abs(projectedDelta)}% before submitting.`;
 
   return (
     <form
@@ -448,6 +482,11 @@ function GoalForm({
       <div className="grid grid-cols-2 gap-2">
         <Field label="Target" value={form.target} onChange={(value) => update("target", value)} required />
         <Field label="Weightage" value={form.weightage} onChange={(value) => update("weightage", value)} type="number" required />
+      </div>
+      <div className={`rounded-md border px-3 py-2 text-[12px] leading-5 ${
+        projectedTotal === 100 ? "border-teal/30 bg-teal/10 text-sec" : "border-amber/40 bg-amber/10 text-sec"
+      }`}>
+        Projected total: <span className="font-medium text-pri">{projectedTotal}%</span>. {projectedMessage}
       </div>
       <button disabled={pending} className="h-9 rounded-md bg-teal text-[12px] font-medium text-[#0D0F12] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50">
         {pending ? "Saving..." : submitLabel}

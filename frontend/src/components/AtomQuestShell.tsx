@@ -13,7 +13,7 @@ const NAV: Record<Role, { group: string; items: { label: string; to: string; ico
     { group: "Workspace", items: [
       { label: "Dashboard", to: "/employee", icon: LayoutDashboard },
       { label: "My Goals", to: "/employee/goals", icon: Target },
-      { label: "Check-ins", to: "/employee", icon: Calendar },
+      { label: "Check-ins", to: "/employee/checkins", icon: Calendar },
       { label: "Feedback", to: "/employee", icon: FileText },
     ]},
     { group: "Performance", items: [

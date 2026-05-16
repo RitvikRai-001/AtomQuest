@@ -18,14 +18,14 @@ function Manager() {
 
       <div className="grid grid-cols-12 gap-4 mt-4">
         {/* Approval queue */}
-        <div className="col-span-8 card-soft">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-subtle">
+        <div className="col-span-12 card-soft overflow-hidden">
+          <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-b border-subtle">
             <div>
               <div className="text-[13.5px] font-semibold text-pri">Approval queue</div>
               <div className="text-[11.5px] text-mut">14 items · oldest 1d 4h · routed via Platform/EU policy</div>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="flex hairline bg-surface rounded-md p-0.5">
+            <div className="flex min-w-0 items-center gap-2">
+              <div className="flex hairline bg-surface rounded-md p-0.5 overflow-hidden">
                 {["All","Submitted","Returned","Escalated"].map((t,i)=>(
                   <button key={t} className={`h-6 px-2 text-[11px] rounded-[5px] ${i===0?"bg-elevated text-pri":"text-sec"}`}>{t}</button>
                 ))}
@@ -34,7 +34,15 @@ function Manager() {
             </div>
           </div>
 
-          <table className="w-full text-[12.5px]">
+          <table className="w-full table-fixed text-[12.5px]">
+            <colgroup>
+              <col className="w-[170px]" />
+              <col />
+              <col className="w-[74px]" />
+              <col className="w-[126px]" />
+              <col className="w-[84px]" />
+              <col className="w-[244px]" />
+            </colgroup>
             <thead>
               <tr className="text-mut bg-app-2/40">
                 <th className="text-left font-medium uppercase text-[10.5px] tracking-wider px-4 py-2.5">Owner</th>
@@ -57,23 +65,23 @@ function Manager() {
               ].map((r, i) => (
                 <tr key={i} className="hover:bg-elevated/60 transition group">
                   <td className="px-4 py-3">
-                    <div className="flex items-center gap-2.5">
-                      <div className="h-6 w-6 rounded-full bg-elevated grid place-items-center text-[10px] text-teal font-medium">{r.who.split(" ").map(x=>x[0]).join("")}</div>
-                      <div>
-                        <div className="text-pri">{r.who}</div>
+                    <div className="flex min-w-0 items-center gap-2.5">
+                      <div className="h-6 w-6 shrink-0 rounded-full bg-elevated grid place-items-center text-[10px] text-teal font-medium">{r.who.split(" ").map(x=>x[0]).join("")}</div>
+                      <div className="min-w-0">
+                        <div className="truncate text-pri">{r.who}</div>
                         <div className="text-[10.5px] text-mut">{r.role}</div>
                       </div>
                     </div>
                   </td>
-                  <td className="py-3 text-sec max-w-[280px] truncate">{r.g}</td>
+                  <td className="py-3 pr-4 text-sec truncate">{r.g}</td>
                   <td className="py-3 tabular-nums text-sec">{r.w}%</td>
                   <td className="py-3"><StatusPill kind={r.s as any} /></td>
                   <td className="py-3 text-mut tabular-nums">{r.t}</td>
                   <td className="px-4 py-3">
-                    <div className="flex items-center justify-end gap-1.5">
-                      <button className="h-6 px-2 text-[11px] rounded-md bg-teal text-[#0D0F12] font-medium flex items-center gap-1"><Check className="h-3 w-3" />Approve</button>
-                      <button className="h-6 px-2 text-[11px] rounded-md hairline bg-surface text-sec hover:bg-elevated flex items-center gap-1"><X className="h-3 w-3" />Return</button>
-                      <button className="h-6 w-6 rounded-md hairline bg-surface grid place-items-center text-mut"><MoreHorizontal className="h-3 w-3" /></button>
+                    <div className="flex items-center justify-end gap-1.5 whitespace-nowrap">
+                      <button className="h-7 px-2.5 text-[11px] rounded-md bg-teal text-[#0D0F12] font-medium flex items-center gap-1"><Check className="h-3 w-3" />Approve</button>
+                      <button className="h-7 px-2.5 text-[11px] rounded-md hairline bg-surface text-sec hover:bg-elevated flex items-center gap-1"><X className="h-3 w-3" />Return</button>
+                      <button className="h-7 w-7 shrink-0 rounded-md hairline bg-surface grid place-items-center text-mut"><MoreHorizontal className="h-3 w-3" /></button>
                     </div>
                   </td>
                 </tr>
@@ -83,9 +91,9 @@ function Manager() {
         </div>
 
         {/* At-risk goals */}
-        <div className="col-span-4 card-soft p-4">
+        <div className="col-span-12 card-soft p-4">
           <SectionHeader title="At-risk goals" hint="Mid-cycle drift detection" action={<button className="text-[11.5px] text-sec hover:text-pri">Escalate all</button>} />
-          <div className="space-y-2.5">
+          <div className="grid grid-cols-2 gap-3">
             {[
               { o: "Maya Lin",     g: "Activation +18% EU",         p: 28, b: 55 },
               { o: "Anya Volkov",  g: "dbt project v4 migration",   p: 32, b: 50 },
@@ -96,11 +104,11 @@ function Manager() {
             ].map((r,i)=>(
               <div key={i} className="p-2.5 rounded-md hairline bg-app-2">
                 <div className="flex items-center justify-between text-[12px]">
-                  <div className="flex items-center gap-2">
+                  <div className="flex min-w-0 items-center gap-2">
                     <AlertTriangle className="h-3 w-3 text-danger" />
-                    <span className="text-pri">{r.o}</span>
+                    <span className="shrink-0 text-pri">{r.o}</span>
                     <span className="text-mut">·</span>
-                    <span className="text-sec truncate max-w-[170px]">{r.g}</span>
+                    <span className="min-w-0 truncate text-sec">{r.g}</span>
                   </div>
                   <span className="text-[11px] text-danger tabular-nums">−{r.b - r.p}%</span>
                 </div>

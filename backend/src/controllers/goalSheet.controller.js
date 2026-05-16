@@ -416,11 +416,12 @@ const getManagerApprovalQueue = asyncHandler(async (req, res) => {
 
   const queue = await Promise.all(
     goalSheets.map(async (sheet) => {
-      const goals = await Goal.find({ goalSheetId: sheet._id });
+      const goals = await Goal.find({ goalSheetId: sheet._id }).sort({ createdAt: 1 });
       const totalWeightage = goals.reduce((sum, goal) => sum + Number(goal.weightage), 0);
 
       return {
         goalSheet: sheet,
+        goals,
         goalsCount: goals.length,
         totalWeightage,
       };

@@ -15,6 +15,7 @@ import { Route as EmployeeRouteImport } from './routes/employee'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as EmployeeGoalsRouteImport } from './routes/employee_.goals'
+import { Route as EmployeeCheckinsRouteImport } from './routes/employee_.checkins'
 
 const ManagerRoute = ManagerRouteImport.update({
   id: '/manager',
@@ -46,6 +47,11 @@ const EmployeeGoalsRoute = EmployeeGoalsRouteImport.update({
   path: '/employee/goals',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EmployeeCheckinsRoute = EmployeeCheckinsRouteImport.update({
+  id: '/employee_/checkins',
+  path: '/employee/checkins',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -53,6 +59,7 @@ export interface FileRoutesByFullPath {
   '/employee': typeof EmployeeRoute
   '/login': typeof LoginRoute
   '/manager': typeof ManagerRoute
+  '/employee/checkins': typeof EmployeeCheckinsRoute
   '/employee/goals': typeof EmployeeGoalsRoute
 }
 export interface FileRoutesByTo {
@@ -61,6 +68,7 @@ export interface FileRoutesByTo {
   '/employee': typeof EmployeeRoute
   '/login': typeof LoginRoute
   '/manager': typeof ManagerRoute
+  '/employee/checkins': typeof EmployeeCheckinsRoute
   '/employee/goals': typeof EmployeeGoalsRoute
 }
 export interface FileRoutesById {
@@ -70,6 +78,7 @@ export interface FileRoutesById {
   '/employee': typeof EmployeeRoute
   '/login': typeof LoginRoute
   '/manager': typeof ManagerRoute
+  '/employee_/checkins': typeof EmployeeCheckinsRoute
   '/employee_/goals': typeof EmployeeGoalsRoute
 }
 export interface FileRouteTypes {
@@ -80,9 +89,17 @@ export interface FileRouteTypes {
     | '/employee'
     | '/login'
     | '/manager'
+    | '/employee/checkins'
     | '/employee/goals'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/employee' | '/login' | '/manager' | '/employee/goals'
+  to:
+    | '/'
+    | '/admin'
+    | '/employee'
+    | '/login'
+    | '/manager'
+    | '/employee/checkins'
+    | '/employee/goals'
   id:
     | '__root__'
     | '/'
@@ -90,6 +107,7 @@ export interface FileRouteTypes {
     | '/employee'
     | '/login'
     | '/manager'
+    | '/employee_/checkins'
     | '/employee_/goals'
   fileRoutesById: FileRoutesById
 }
@@ -99,6 +117,7 @@ export interface RootRouteChildren {
   EmployeeRoute: typeof EmployeeRoute
   LoginRoute: typeof LoginRoute
   ManagerRoute: typeof ManagerRoute
+  EmployeeCheckinsRoute: typeof EmployeeCheckinsRoute
   EmployeeGoalsRoute: typeof EmployeeGoalsRoute
 }
 
@@ -146,6 +165,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EmployeeGoalsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/employee_/checkins': {
+      id: '/employee_/checkins'
+      path: '/employee/checkins'
+      fullPath: '/employee/checkins'
+      preLoaderRoute: typeof EmployeeCheckinsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -155,6 +181,7 @@ const rootRouteChildren: RootRouteChildren = {
   EmployeeRoute: EmployeeRoute,
   LoginRoute: LoginRoute,
   ManagerRoute: ManagerRoute,
+  EmployeeCheckinsRoute: EmployeeCheckinsRoute,
   EmployeeGoalsRoute: EmployeeGoalsRoute,
 }
 export const routeTree = rootRouteImport
