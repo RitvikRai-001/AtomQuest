@@ -108,7 +108,7 @@ const syncSharedGoalAchievements = async ({ sourceGoal, sourceAchievement, updat
   if (!sourceGoal.sharedGoalId) return;
 
   const sharedGoal = await SharedGoal.findById(sourceGoal.sharedGoalId);
-  if (!sharedGoal || sharedGoal.primaryOwnerId.toString() !== updatedBy) return;
+  if (!sharedGoal || sharedGoal.primaryOwnerId.toString() !== updatedBy.toString()) return;
 
   const linkedGoals = await Goal.find({
     sharedGoalId: sourceGoal.sharedGoalId,
@@ -154,10 +154,10 @@ const syncSharedGoalAchievements = async ({ sourceGoal, sourceAchievement, updat
 
 const upsertAchievement = asyncHandler(async (req, res) => {
   const { goalId } = req.params;
-  const { quarter, actual, status, employeeRemarks, updatedBy } = req.body;
+  const { quarter, actual, status, employeeRemarks } = req.body;
+  const updatedBy = req.user._id;
 
   validateObjectId(goalId, "goalId");
-  validateObjectId(updatedBy, "updatedBy");
 
   if (!quarter || !["Q1", "Q2", "Q3", "Q4"].includes(quarter)) {
     return res.status(400).json({
@@ -188,6 +188,13 @@ const upsertAchievement = asyncHandler(async (req, res) => {
   const goalSheet = await GoalSheet.findById(goal.goalSheetId);
   if (!goalSheet) {
     return res.status(404).json({ success: false, message: "Goal sheet not found" });
+  }
+
+  if (goalSheet.employeeId.toString() !== req.user._id.toString()) {
+    return res.status(403).json({
+      success: false,
+      message: "You can update achievements only for your own goals",
+    });
   }
 
   await checkQuarterWindow({ cycleId: goalSheet.cycleId, quarter });

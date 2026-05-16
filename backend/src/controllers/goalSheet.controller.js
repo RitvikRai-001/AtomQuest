@@ -77,9 +77,9 @@ const getGoalSheetWithGoals = async (goalSheetId) => {
 };
 
 const createGoalSheet = asyncHandler(async (req, res) => {
-  const { employeeId, cycleId } = req.body;
+  const employeeId = req.user._id;
+  const { cycleId } = req.body;
 
-  validateObjectId(employeeId, "employeeId");
   validateObjectId(cycleId, "cycleId");
 
   const existingSheet = await GoalSheet.findOne({ employeeId, cycleId });
@@ -101,7 +101,7 @@ const createGoalSheet = asyncHandler(async (req, res) => {
     action: "Created",
     oldValue: null,
     newValue: goalSheet,
-    changedBy: employeeId,
+    changedBy: req.user._id,
     changedByRole: "employee",
   });
 
@@ -137,8 +137,6 @@ const addGoal = asyncHandler(async (req, res) => {
     weightage,
     isShared,
     sharedGoalId,
-    changedBy,
-    changedByRole = "employee",
   } = req.body;
 
   validateObjectId(goalSheetId, "goalSheetId");
@@ -152,6 +150,13 @@ const addGoal = asyncHandler(async (req, res) => {
     return res.status(400).json({
       success: false,
       message: "Goals cannot be edited after submission or approval",
+    });
+  }
+
+  if (goalSheet.employeeId.toString() !== req.user._id.toString()) {
+    return res.status(403).json({
+      success: false,
+      message: "You can add goals only to your own goal sheet",
     });
   }
 
@@ -182,8 +187,8 @@ const addGoal = asyncHandler(async (req, res) => {
     action: "Created",
     oldValue: null,
     newValue: goal,
-    changedBy: changedBy || goalSheet.employeeId,
-    changedByRole,
+    changedBy: req.user._id,
+    changedByRole: req.user.role,
   });
 
   return res.status(201).json({
@@ -195,7 +200,7 @@ const addGoal = asyncHandler(async (req, res) => {
 
 const updateGoal = asyncHandler(async (req, res) => {
   const { goalSheetId, goalId } = req.params;
-  const { changedBy, changedByRole = "employee", ...updates } = req.body;
+  const { ...updates } = req.body;
 
   validateObjectId(goalSheetId, "goalSheetId");
   validateObjectId(goalId, "goalId");
@@ -209,6 +214,13 @@ const updateGoal = asyncHandler(async (req, res) => {
     return res.status(400).json({
       success: false,
       message: "Goals cannot be edited after submission or approval",
+    });
+  }
+
+  if (goalSheet.employeeId.toString() !== req.user._id.toString()) {
+    return res.status(403).json({
+      success: false,
+      message: "You can update goals only in your own goal sheet",
     });
   }
 
@@ -236,8 +248,8 @@ const updateGoal = asyncHandler(async (req, res) => {
     action: "Updated",
     oldValue: oldGoal,
     newValue: goal,
-    changedBy: changedBy || goalSheet.employeeId,
-    changedByRole,
+    changedBy: req.user._id,
+    changedByRole: req.user.role,
   });
 
   return res.status(200).json({
@@ -249,7 +261,6 @@ const updateGoal = asyncHandler(async (req, res) => {
 
 const deleteGoal = asyncHandler(async (req, res) => {
   const { goalSheetId, goalId } = req.params;
-  const { changedBy, changedByRole = "employee" } = req.body;
 
   validateObjectId(goalSheetId, "goalSheetId");
   validateObjectId(goalId, "goalId");
@@ -266,6 +277,13 @@ const deleteGoal = asyncHandler(async (req, res) => {
     });
   }
 
+  if (goalSheet.employeeId.toString() !== req.user._id.toString()) {
+    return res.status(403).json({
+      success: false,
+      message: "You can delete goals only from your own goal sheet",
+    });
+  }
+
   const goal = await Goal.findOneAndDelete({ _id: goalId, goalSheetId });
   if (!goal) {
     return res.status(404).json({ success: false, message: "Goal not found" });
@@ -277,8 +295,8 @@ const deleteGoal = asyncHandler(async (req, res) => {
     action: "Deleted",
     oldValue: goal,
     newValue: null,
-    changedBy: changedBy || goalSheet.employeeId,
-    changedByRole,
+    changedBy: req.user._id,
+    changedByRole: req.user.role,
   });
 
   return res.status(200).json({
@@ -289,10 +307,9 @@ const deleteGoal = asyncHandler(async (req, res) => {
 
 const submitGoalSheet = asyncHandler(async (req, res) => {
   const { goalSheetId } = req.params;
-  const { employeeId } = req.body;
+  const employeeId = req.user._id.toString();
 
   validateObjectId(goalSheetId, "goalSheetId");
-  validateObjectId(employeeId, "employeeId");
 
   const goalSheet = await GoalSheet.findById(goalSheetId);
   if (!goalSheet) {
@@ -324,7 +341,7 @@ const submitGoalSheet = asyncHandler(async (req, res) => {
     action: "Submitted",
     oldValue: oldGoalSheet,
     newValue: goalSheet,
-    changedBy: employeeId,
+    changedBy: req.user._id,
     changedByRole: "employee",
   });
 
@@ -336,9 +353,7 @@ const submitGoalSheet = asyncHandler(async (req, res) => {
 });
 
 const getManagerApprovalQueue = asyncHandler(async (req, res) => {
-  const { managerId } = req.params;
-
-  validateObjectId(managerId, "managerId");
+  const managerId = req.user._id;
 
   const employees = await User.find({ managerId }).select("_id fullname email departmentId");
   const employeeIds = employees.map((employee) => employee._id);
@@ -372,10 +387,10 @@ const getManagerApprovalQueue = asyncHandler(async (req, res) => {
 
 const approveGoalSheet = asyncHandler(async (req, res) => {
   const { goalSheetId } = req.params;
-  const { managerId, comment, goals = [] } = req.body;
+  const { comment, goals = [] } = req.body;
+  const managerId = req.user._id;
 
   validateObjectId(goalSheetId, "goalSheetId");
-  validateObjectId(managerId, "managerId");
 
   const goalSheet = await GoalSheet.findById(goalSheetId);
   if (!goalSheet) {
@@ -386,6 +401,14 @@ const approveGoalSheet = asyncHandler(async (req, res) => {
     return res.status(400).json({
       success: false,
       message: "Only submitted goal sheets can be approved",
+    });
+  }
+
+  const employee = await User.findById(goalSheet.employeeId).select("managerId");
+  if (!employee || employee.managerId?.toString() !== managerId.toString()) {
+    return res.status(403).json({
+      success: false,
+      message: "You can approve only your team member goal sheets",
     });
   }
 
@@ -449,10 +472,10 @@ const approveGoalSheet = asyncHandler(async (req, res) => {
 
 const returnGoalSheet = asyncHandler(async (req, res) => {
   const { goalSheetId } = req.params;
-  const { managerId, comment } = req.body;
+  const { comment } = req.body;
+  const managerId = req.user._id;
 
   validateObjectId(goalSheetId, "goalSheetId");
-  validateObjectId(managerId, "managerId");
 
   if (!comment) {
     return res.status(400).json({
@@ -470,6 +493,14 @@ const returnGoalSheet = asyncHandler(async (req, res) => {
     return res.status(400).json({
       success: false,
       message: "Only submitted goal sheets can be returned",
+    });
+  }
+
+  const employee = await User.findById(goalSheet.employeeId).select("managerId");
+  if (!employee || employee.managerId?.toString() !== managerId.toString()) {
+    return res.status(403).json({
+      success: false,
+      message: "You can return only your team member goal sheets",
     });
   }
 

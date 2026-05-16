@@ -3,9 +3,14 @@ import mongoose from "mongoose";
 
 const connectDB=async()=>{
     try{
-        console.log("URI",process.env.MONGO_URI);
-        console.log(`${process.env.DB_NAME}`)
-        await mongoose.connect(`${process.env.MONGO_URI}/${process.env.DB_NAME}`);
+        const mongoUri = process.env.MONGO_URI;
+        const dbName = process.env.DB_NAME;
+
+        if (!mongoUri || !dbName) {
+            throw new Error("Missing MONGO_URI or DB_NAME in backend/src/.env");
+        }
+
+        await mongoose.connect(`${mongoUri.replace(/\/$/, "")}/${dbName}`);
         console.log("Connected to MongoDB");
     }
     catch(error){

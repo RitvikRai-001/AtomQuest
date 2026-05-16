@@ -48,9 +48,9 @@ const createAuditLog = async ({ entityType, entityId, action, oldValue, newValue
 };
 
 const createCycle = asyncHandler(async (req, res) => {
-  const { name, year, status, startDate, endDate, adminId } = req.body;
+  const { name, year, status, startDate, endDate } = req.body;
+  const adminId = req.user._id;
 
-  validateObjectId(adminId, "adminId");
   validateDateRange(startDate, endDate);
 
   const cycle = await Cycle.create({
@@ -116,10 +116,10 @@ const getCycleById = asyncHandler(async (req, res) => {
 
 const updateCycle = asyncHandler(async (req, res) => {
   const { cycleId } = req.params;
-  const { adminId, ...updates } = req.body;
+  const { ...updates } = req.body;
+  const adminId = req.user._id;
 
   validateObjectId(cycleId, "cycleId");
-  validateObjectId(adminId, "adminId");
 
   const cycle = await Cycle.findById(cycleId);
   if (!cycle) {
@@ -152,10 +152,10 @@ const updateCycle = asyncHandler(async (req, res) => {
 
 const createCheckinWindow = asyncHandler(async (req, res) => {
   const { cycleId } = req.params;
-  const { period, openDate, closeDate, status, adminId } = req.body;
+  const { period, openDate, closeDate, status } = req.body;
+  const adminId = req.user._id;
 
   validateObjectId(cycleId, "cycleId");
-  validateObjectId(adminId, "adminId");
   validateDateRange(openDate, closeDate, "openDate", "closeDate");
 
   const cycle = await Cycle.findById(cycleId);
@@ -210,10 +210,10 @@ const getCheckinWindows = asyncHandler(async (req, res) => {
 
 const updateCheckinWindow = asyncHandler(async (req, res) => {
   const { windowId } = req.params;
-  const { adminId, ...updates } = req.body;
+  const { ...updates } = req.body;
+  const adminId = req.user._id;
 
   validateObjectId(windowId, "windowId");
-  validateObjectId(adminId, "adminId");
 
   const checkinWindow = await CheckinWindow.findById(windowId);
   if (!checkinWindow) {
@@ -246,10 +246,9 @@ const updateCheckinWindow = asyncHandler(async (req, res) => {
 
 const deleteCheckinWindow = asyncHandler(async (req, res) => {
   const { windowId } = req.params;
-  const { adminId } = req.body;
+  const adminId = req.user._id;
 
   validateObjectId(windowId, "windowId");
-  validateObjectId(adminId, "adminId");
 
   const checkinWindow = await CheckinWindow.findByIdAndDelete(windowId);
   if (!checkinWindow) {

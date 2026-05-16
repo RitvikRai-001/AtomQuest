@@ -48,10 +48,10 @@ const createAuditLog = async ({ checkinComment, oldValue, changedBy }) => {
 
 const upsertCheckinComment = asyncHandler(async (req, res) => {
   const { goalId } = req.params;
-  const { quarter, managerId, comment, outcome } = req.body;
+  const { quarter, comment, outcome } = req.body;
+  const managerId = req.user._id;
 
   validateObjectId(goalId, "goalId");
-  validateObjectId(managerId, "managerId");
 
   if (!quarter || !["Q1", "Q2", "Q3", "Q4"].includes(quarter)) {
     return res.status(400).json({
@@ -89,6 +89,13 @@ const upsertCheckinComment = asyncHandler(async (req, res) => {
   const goalSheet = await GoalSheet.findById(goal.goalSheetId);
   if (!goalSheet) {
     return res.status(404).json({ success: false, message: "Goal sheet not found" });
+  }
+
+  if (goalSheet.approvedBy?.toString() !== managerId.toString()) {
+    return res.status(403).json({
+      success: false,
+      message: "You can add check-ins only for goal sheets approved by you",
+    });
   }
 
   await checkQuarterWindow({ cycleId: goalSheet.cycleId, quarter });

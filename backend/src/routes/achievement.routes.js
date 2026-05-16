@@ -5,10 +5,16 @@ import {
   previewProgressScore,
   upsertAchievement,
 } from "../controllers/achievement.controller.js";
+import { authorizeRoles, verifyJWT } from "../middleware/auth.middleware.js";
 
 const router = Router();
 
-router.route("/goals/:goalId").get(getGoalAchievements).post(upsertAchievement);
+router.use(verifyJWT);
+
+router
+  .route("/goals/:goalId")
+  .get(getGoalAchievements)
+  .post(authorizeRoles("employee"), upsertAchievement);
 
 router.route("/goals/:goalId/preview-progress").post(previewProgressScore);
 

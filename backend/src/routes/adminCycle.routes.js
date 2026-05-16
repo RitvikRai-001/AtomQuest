@@ -9,8 +9,12 @@ import {
   updateCheckinWindow,
   updateCycle,
 } from "../controllers/adminCycle.controller.js";
+import { authorizeRoles, verifyJWT } from "../middleware/auth.middleware.js";
 
 const router = Router();
+
+router.use(verifyJWT);
+router.use(authorizeRoles("admin"));
 
 router.route("/cycles").get(getCycles).post(createCycle);
 
