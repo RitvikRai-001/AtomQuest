@@ -51,6 +51,43 @@ const upsertUser = async ({ email, fullname, role, departmentId, managerId }) =>
   return user;
 };
 
+const createSubmittedSheet = async ({ employee, cycle, submittedAt, goals }) => {
+  const goalSheet = await GoalSheet.findOneAndUpdate(
+    { employeeId: employee._id, cycleId: cycle._id },
+    {
+      $set: {
+        employeeId: employee._id,
+        cycleId: cycle._id,
+        status: "submitted",
+        submittedAt,
+        managerComment: "",
+      },
+      $unset: {
+        approvedAt: 1,
+        approvedBy: 1,
+        returnedAt: 1,
+        returnedBy: 1,
+      },
+    },
+    { new: true, upsert: true }
+  );
+
+  await Goal.deleteMany({ goalSheetId: goalSheet._id });
+
+  const createdGoals = await Goal.insertMany(
+    goals.map((goal) => ({
+      goalSheetId: goalSheet._id,
+      locked: false,
+      ...goal,
+    }))
+  );
+
+  await Achievement.deleteMany({ goalId: { $in: createdGoals.map((goal) => goal._id) } });
+  await CheckinComment.deleteMany({ goalId: { $in: createdGoals.map((goal) => goal._id) } });
+
+  return goalSheet;
+};
+
 const seed = async () => {
   await connectDB();
 
@@ -107,7 +144,8 @@ const seed = async () => {
 
   const windows = [
     ["GOAL_SETTING", "2026-05-01", "2026-05-31"],
-    ["Q1", "2026-07-01", "2026-07-31"],
+    // Demo override: keep Q1 open in May so achievement capture can be tested today.
+    ["Q1", "2026-05-01", "2026-05-31"],
     ["Q2", "2026-10-01", "2026-10-31"],
     ["Q3", "2027-01-01", "2027-01-31"],
     ["Q4", "2027-03-01", "2027-04-30"],
@@ -211,8 +249,131 @@ const seed = async () => {
 
   await CheckinComment.deleteMany({ goalId: { $in: goals.map((goal) => goal._id) } });
 
+  const queueEmployees = [
+    {
+      email: "maya@demo.com",
+      fullname: "Maya Lin",
+      submittedAt: new Date("2026-05-15T09:00:00.000Z"),
+      goals: [
+        {
+          thrustArea: "Revenue Growth",
+          title: "Increase activation by 18% in EU",
+          description: "Improve activation funnel conversion across EU accounts.",
+          uomType: "%",
+          scoringType: "Min",
+          target: "18",
+          weightage: 40,
+        },
+        {
+          thrustArea: "Customer Experience",
+          title: "Improve enterprise onboarding CSAT",
+          description: "Lift onboarding satisfaction for enterprise customers.",
+          uomType: "%",
+          scoringType: "Min",
+          target: "90",
+          weightage: 30,
+        },
+        {
+          thrustArea: "Process Improvement",
+          title: "Reduce campaign launch cycle time",
+          description: "Reduce campaign launch turnaround time.",
+          uomType: "Numeric",
+          scoringType: "Max",
+          target: "7",
+          weightage: 30,
+        },
+      ],
+    },
+    {
+      email: "daniel@demo.com",
+      fullname: "Daniel Okafor",
+      submittedAt: new Date("2026-05-15T11:30:00.000Z"),
+      goals: [
+        {
+          thrustArea: "Process Improvement",
+          title: "Cut p95 latency to 180ms",
+          description: "Improve platform latency for checkout services.",
+          uomType: "Numeric",
+          scoringType: "Max",
+          target: "180",
+          weightage: 50,
+        },
+        {
+          thrustArea: "Innovation",
+          title: "Ship observability automation",
+          description: "Automate core service health dashboards.",
+          uomType: "Numeric",
+          scoringType: "Min",
+          target: "6",
+          weightage: 30,
+        },
+        {
+          thrustArea: "People Development",
+          title: "Mentor two platform engineers",
+          description: "Run structured mentorship for IC2 engineers.",
+          uomType: "Numeric",
+          scoringType: "Min",
+          target: "2",
+          weightage: 20,
+        },
+      ],
+    },
+    {
+      email: "lee@demo.com",
+      fullname: "Lee Sato",
+      submittedAt: new Date("2026-05-16T06:00:00.000Z"),
+      goals: [
+        {
+          thrustArea: "Innovation",
+          title: "Launch design system v3",
+          description: "Launch updated component foundations and adoption playbook.",
+          uomType: "Timeline",
+          scoringType: "Timeline",
+          target: "2026-09-30",
+          weightage: 45,
+        },
+        {
+          thrustArea: "Process Improvement",
+          title: "Reduce design QA defects",
+          description: "Reduce quality defects found after handoff.",
+          uomType: "%",
+          scoringType: "Max",
+          target: "5",
+          weightage: 35,
+        },
+        {
+          thrustArea: "People Development",
+          title: "Run accessibility enablement",
+          description: "Train squads on accessibility review patterns.",
+          uomType: "Numeric",
+          scoringType: "Min",
+          target: "4",
+          weightage: 20,
+        },
+      ],
+    },
+  ];
+
+  for (const report of queueEmployees) {
+    const queueEmployee = await upsertUser({
+      email: report.email,
+      fullname: report.fullname,
+      role: "employee",
+      departmentId: department._id,
+      managerId: manager._id,
+    });
+
+    await createSubmittedSheet({
+      employee: queueEmployee,
+      cycle,
+      submittedAt: report.submittedAt,
+      goals: report.goals,
+    });
+  }
+
   console.log("Demo data seeded successfully");
   console.log("Employee goal sheet is returned/unlocked for add/edit/submit testing");
+  console.log("Manager approval queue seeded with submitted direct reports");
   console.log("Employee: employee@demo.com / Demo@123");
   console.log("Manager:  manager@demo.com / Demo@123");
   console.log("Admin:    admin@demo.com / Demo@123");
