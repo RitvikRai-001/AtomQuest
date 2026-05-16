@@ -119,6 +119,14 @@ export const checkinApi = {
     }),
 };
 
+export const feedbackApi = {
+  requestFeedback: (message?: string) =>
+    apiRequest("/feedback/request", {
+      method: "POST",
+      body: JSON.stringify({ message }),
+    }),
+};
+
 export const adminApi = {
   getCycles: () => apiRequest("/admin/cycles"),
   createCycle: (body: unknown) =>

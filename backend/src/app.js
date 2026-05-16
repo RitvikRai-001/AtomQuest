@@ -6,6 +6,7 @@ import adminCycleRouter from "./routes/adminCycle.routes.js";
 import achievementRouter from "./routes/achievement.routes.js";
 import authRouter from "./routes/auth.routes.js";
 import checkinRouter from "./routes/checkin.routes.js";
+import feedbackRouter from "./routes/feedback.routes.js";
 import goalSheetRouter from "./routes/goalSheet.routes.js";
 import { ApiError } from "./utils/ApiError.js";
 import { errorHandler } from "./middleware/error.middleware.js";
@@ -62,6 +63,7 @@ app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/goal-sheets", goalSheetRouter);
 app.use("/api/v1/achievements", achievementRouter);
 app.use("/api/v1/checkins", checkinRouter);
+app.use("/api/v1/feedback", feedbackRouter);
 app.use("/api/v1/admin", adminCycleRouter);
 
 app.use((req, res) => {

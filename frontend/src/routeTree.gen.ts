@@ -14,8 +14,11 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as EmployeeRouteImport } from './routes/employee'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as EmployeeReviewRouteImport } from './routes/employee_.review'
 import { Route as EmployeeGoalsRouteImport } from './routes/employee_.goals'
+import { Route as EmployeeFeedbackRouteImport } from './routes/employee_.feedback'
 import { Route as EmployeeCheckinsRouteImport } from './routes/employee_.checkins'
+import { Route as EmployeeActivityRouteImport } from './routes/employee_.activity'
 
 const ManagerRoute = ManagerRouteImport.update({
   id: '/manager',
@@ -42,14 +45,29 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EmployeeReviewRoute = EmployeeReviewRouteImport.update({
+  id: '/employee_/review',
+  path: '/employee/review',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EmployeeGoalsRoute = EmployeeGoalsRouteImport.update({
   id: '/employee_/goals',
   path: '/employee/goals',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EmployeeFeedbackRoute = EmployeeFeedbackRouteImport.update({
+  id: '/employee_/feedback',
+  path: '/employee/feedback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EmployeeCheckinsRoute = EmployeeCheckinsRouteImport.update({
   id: '/employee_/checkins',
   path: '/employee/checkins',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EmployeeActivityRoute = EmployeeActivityRouteImport.update({
+  id: '/employee_/activity',
+  path: '/employee/activity',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -59,8 +77,11 @@ export interface FileRoutesByFullPath {
   '/employee': typeof EmployeeRoute
   '/login': typeof LoginRoute
   '/manager': typeof ManagerRoute
+  '/employee/activity': typeof EmployeeActivityRoute
   '/employee/checkins': typeof EmployeeCheckinsRoute
+  '/employee/feedback': typeof EmployeeFeedbackRoute
   '/employee/goals': typeof EmployeeGoalsRoute
+  '/employee/review': typeof EmployeeReviewRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -68,8 +89,11 @@ export interface FileRoutesByTo {
   '/employee': typeof EmployeeRoute
   '/login': typeof LoginRoute
   '/manager': typeof ManagerRoute
+  '/employee/activity': typeof EmployeeActivityRoute
   '/employee/checkins': typeof EmployeeCheckinsRoute
+  '/employee/feedback': typeof EmployeeFeedbackRoute
   '/employee/goals': typeof EmployeeGoalsRoute
+  '/employee/review': typeof EmployeeReviewRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -78,8 +102,11 @@ export interface FileRoutesById {
   '/employee': typeof EmployeeRoute
   '/login': typeof LoginRoute
   '/manager': typeof ManagerRoute
+  '/employee_/activity': typeof EmployeeActivityRoute
   '/employee_/checkins': typeof EmployeeCheckinsRoute
+  '/employee_/feedback': typeof EmployeeFeedbackRoute
   '/employee_/goals': typeof EmployeeGoalsRoute
+  '/employee_/review': typeof EmployeeReviewRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -89,8 +116,11 @@ export interface FileRouteTypes {
     | '/employee'
     | '/login'
     | '/manager'
+    | '/employee/activity'
     | '/employee/checkins'
+    | '/employee/feedback'
     | '/employee/goals'
+    | '/employee/review'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -98,8 +128,11 @@ export interface FileRouteTypes {
     | '/employee'
     | '/login'
     | '/manager'
+    | '/employee/activity'
     | '/employee/checkins'
+    | '/employee/feedback'
     | '/employee/goals'
+    | '/employee/review'
   id:
     | '__root__'
     | '/'
@@ -107,8 +140,11 @@ export interface FileRouteTypes {
     | '/employee'
     | '/login'
     | '/manager'
+    | '/employee_/activity'
     | '/employee_/checkins'
+    | '/employee_/feedback'
     | '/employee_/goals'
+    | '/employee_/review'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -117,8 +153,11 @@ export interface RootRouteChildren {
   EmployeeRoute: typeof EmployeeRoute
   LoginRoute: typeof LoginRoute
   ManagerRoute: typeof ManagerRoute
+  EmployeeActivityRoute: typeof EmployeeActivityRoute
   EmployeeCheckinsRoute: typeof EmployeeCheckinsRoute
+  EmployeeFeedbackRoute: typeof EmployeeFeedbackRoute
   EmployeeGoalsRoute: typeof EmployeeGoalsRoute
+  EmployeeReviewRoute: typeof EmployeeReviewRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -158,6 +197,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/employee_/review': {
+      id: '/employee_/review'
+      path: '/employee/review'
+      fullPath: '/employee/review'
+      preLoaderRoute: typeof EmployeeReviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/employee_/goals': {
       id: '/employee_/goals'
       path: '/employee/goals'
@@ -165,11 +211,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EmployeeGoalsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/employee_/feedback': {
+      id: '/employee_/feedback'
+      path: '/employee/feedback'
+      fullPath: '/employee/feedback'
+      preLoaderRoute: typeof EmployeeFeedbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/employee_/checkins': {
       id: '/employee_/checkins'
       path: '/employee/checkins'
       fullPath: '/employee/checkins'
       preLoaderRoute: typeof EmployeeCheckinsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/employee_/activity': {
+      id: '/employee_/activity'
+      path: '/employee/activity'
+      fullPath: '/employee/activity'
+      preLoaderRoute: typeof EmployeeActivityRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -181,8 +241,11 @@ const rootRouteChildren: RootRouteChildren = {
   EmployeeRoute: EmployeeRoute,
   LoginRoute: LoginRoute,
   ManagerRoute: ManagerRoute,
+  EmployeeActivityRoute: EmployeeActivityRoute,
   EmployeeCheckinsRoute: EmployeeCheckinsRoute,
+  EmployeeFeedbackRoute: EmployeeFeedbackRoute,
   EmployeeGoalsRoute: EmployeeGoalsRoute,
+  EmployeeReviewRoute: EmployeeReviewRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

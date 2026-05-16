@@ -14,11 +14,11 @@ const NAV: Record<Role, { group: string; items: { label: string; to: string; ico
       { label: "Dashboard", to: "/employee", icon: LayoutDashboard },
       { label: "My Goals", to: "/employee/goals", icon: Target },
       { label: "Check-ins", to: "/employee/checkins", icon: Calendar },
-      { label: "Feedback", to: "/employee", icon: FileText },
+      { label: "Feedback", to: "/employee/feedback", icon: FileText },
     ]},
     { group: "Performance", items: [
-      { label: "Quarterly Review", to: "/employee", icon: ClipboardList },
-      { label: "Activity", to: "/employee", icon: Activity },
+      { label: "Quarterly Review", to: "/employee/review", icon: ClipboardList },
+      { label: "Activity", to: "/employee/activity", icon: Activity },
     ]},
   ],
   Manager: [

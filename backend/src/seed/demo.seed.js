@@ -249,6 +249,33 @@ const seed = async () => {
 
   await CheckinComment.deleteMany({ goalId: { $in: goals.map((goal) => goal._id) } });
 
+  await CheckinComment.insertMany([
+    {
+      goalId: goals[0]._id,
+      quarter: "Q1",
+      employeeId: employee._id,
+      managerId: manager._id,
+      outcome: "On Track",
+      comment: "Strong start on pipeline conversion. Keep the enterprise follow-up cadence tight and share weekly conversion movement before the next review.",
+    },
+    {
+      goalId: goals[1]._id,
+      quarter: "Q1",
+      employeeId: employee._id,
+      managerId: manager._id,
+      outcome: "Needs Support",
+      comment: "Escalation rate is improving, but the root-cause notes need clearer owner names. Bring the support handoff list to the next check-in.",
+    },
+    {
+      goalId: goals[2]._id,
+      quarter: "Q1",
+      employeeId: employee._id,
+      managerId: manager._id,
+      outcome: "At Risk",
+      comment: "Onboarding turnaround is trending behind plan. Reduce scope to the two highest-volume onboarding paths and flag dependency blockers early.",
+    },
+  ]);
+
   const queueEmployees = [
     {
       email: "maya@demo.com",
